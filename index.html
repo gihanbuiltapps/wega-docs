@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WEGA GPS API Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f3f6f5; --panel:#ffffff; --ink:#15201d; --ink2:#4a5a56; --line:#d6dfdc; --line2:#e7eeec;
+  --accent:#0d6b5b; --accent-ink:#ffffff; --code-bg:#eaf0ee; --pre-bg:#14201d; --pre-ink:#d9efe8;
+  --get:#1f5fbf; --post:#1a7f4b; --put:#a5620a; --del:#b3261e; --other:#6a4fb3;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1715; --panel:#16211e; --ink:#e3eeea; --ink2:#9db1ab; --line:#2a3a36; --line2:#212e2b;
+    --accent:#4cc9ae; --accent-ink:#06201a; --code-bg:#1d2b27; --pre-bg:#0a100f; --pre-ink:#cfe9e1;
+    --get:#6ea8ff; --post:#4fd18b; --put:#f0a94c; --del:#ff7b72; --other:#b9a4ff;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1715; --panel:#16211e; --ink:#e3eeea; --ink2:#9db1ab; --line:#2a3a36; --line2:#212e2b;
+  --accent:#4cc9ae; --accent-ink:#06201a; --code-bg:#1d2b27; --pre-bg:#0a100f; --pre-ink:#cfe9e1;
+  --get:#6ea8ff; --post:#4fd18b; --put:#f0a94c; --del:#ff7b72; --other:#b9a4ff;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px);scroll-behavior:smooth}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+code{font:0.88em var(--mono);background:var(--code-bg);padding:.1em .35em;border-radius:3px}
+em{font-style:normal;font-weight:500}
+.shell{display:grid;grid-template-columns:292px minmax(0,1fr);min-height:100vh}
+
+/* sidebar */
+.side{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;background:var(--panel);border-right:1px solid var(--line);padding:20px 16px 32px;padding-top:calc(env(safe-area-inset-top,0px) + 20px)}
+.brand{font-weight:600;font-size:17px;letter-spacing:-.01em;margin:0 4px 2px}
+.brand small{display:block;font-weight:400;font-size:12.5px;color:var(--ink2);margin-top:1px}
+.search{width:100%;margin:14px 0 6px;padding:8px 10px;font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:5px}
+.search:focus,.sel:focus,.btn:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.nav h4{margin:18px 4px 4px;font-size:12.5px;font-weight:600;color:var(--ink2)}
+.nav a{display:flex;justify-content:space-between;gap:8px;padding:4px 8px;border-radius:4px;color:var(--ink);text-decoration:none;font-size:14px}
+.nav a:hover{background:var(--code-bg)}
+.nav a.active{background:var(--code-bg);font-weight:500}
+.nav a span{color:var(--ink2);font-size:12.5px;font-variant-numeric:tabular-nums}
+.topbar{display:none}
+
+/* main */
+main{padding:40px clamp(18px,4vw,56px) 80px;max-width:1040px;width:100%}
+h1{font-size:34px;line-height:1.15;letter-spacing:-.02em;margin:0 0 10px;font-weight:600}
+h2{font-size:24px;letter-spacing:-.01em;margin:0 0 6px;font-weight:600}
+h3{font-size:16px;margin:22px 0 8px;font-weight:600}
+.lede{font-size:17px;color:var(--ink2);max-width:62ch;margin:0 0 18px}
+.sec{padding-top:44px}
+.sec>p{max-width:70ch;color:var(--ink2);margin:0 0 14px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 22px;margin:14px 0 4px;font-size:14px;color:var(--ink2)}
+.meta b{color:var(--ink);font-weight:500}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 6px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+.controls label{font-size:13.5px;color:var(--ink2);display:flex;gap:8px;align-items:center}
+.sel,.txt{font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:5px 8px}
+.txt{min-width:260px;font-family:var(--mono);font-size:13px}
+.btn{font:inherit;font-size:13.5px;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:5px 11px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.tbl{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0 0}
+.tbl th{text-align:left;font-weight:500;color:var(--ink2);font-size:13px;padding:6px 10px 6px 0;border-bottom:1px solid var(--line)}
+.tbl td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line2);vertical-align:top}
+.tbl td:last-child,.tbl th:last-child{padding-right:0}
+.tbl .n{font-family:var(--mono);font-size:13px;white-space:nowrap}
+.tbl .t{font-family:var(--mono);font-size:12.5px;color:var(--ink2)}
+.req{color:var(--del);font-size:12.5px;margin-left:6px;font-family:var(--sans)}
+.scroll{overflow-x:auto;max-width:100%}
+.callout{border-left:3px solid var(--accent);padding:2px 0 2px 14px;margin:14px 0;color:var(--ink2);max-width:70ch}
+
+/* endpoints */
+.ops{border-top:1px solid var(--line);margin-top:16px}
+details.op{border-bottom:1px solid var(--line);border-left:4px solid var(--c,var(--other));background:var(--panel)}
+details.op[open]{background:var(--panel)}
+details.op>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:62px minmax(0,auto) 1fr;gap:4px 14px;align-items:baseline;padding:10px 14px}
+details.op>summary::-webkit-details-marker{display:none}
+details.op>summary:hover{background:var(--code-bg)}
+.m{font:500 12.5px var(--mono);color:var(--c)}
+.p{font:500 14px var(--mono);word-break:break-all}
+.p i{font-style:normal;color:var(--c)}
+.s{color:var(--ink2);font-size:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+.tag{font-size:11.5px;border:1px solid var(--line);border-radius:3px;padding:0 5px;color:var(--ink2);line-height:1.6}
+.body{padding:4px 18px 20px 18px;border-top:1px solid var(--line2)}
+.body .d{max-width:72ch;margin:12px 0 4px}
+.body .id{font:12.5px var(--mono);color:var(--ink2)}
+pre{position:relative;margin:8px 0 0;background:var(--pre-bg);color:var(--pre-ink);font:13px/1.55 var(--mono);padding:12px 14px;border-radius:5px;overflow-x:auto}
+.cp{position:absolute;top:6px;right:6px;font-size:12px;padding:2px 8px;background:transparent;color:var(--pre-ink);border:1px solid rgba(255,255,255,.25);border-radius:3px;cursor:pointer}
+.cp:hover{border-color:var(--pre-ink)}
+.sc{font:500 13px var(--mono)}
+.sc.ok{color:var(--post)} .sc.rd{color:var(--put)} .sc.er{color:var(--del)}
+.empty{padding:30px 0;color:var(--ink2);display:none}
+
+/* schemas */
+.schema{border-bottom:1px solid var(--line);padding:18px 0}
+.schema h3{margin:0 0 2px;font:500 16px var(--mono)}
+.schema p{margin:0 0 6px;color:var(--ink2);font-size:14px;max-width:70ch}
+footer{margin-top:60px;color:var(--ink2);font-size:13.5px;border-top:1px solid var(--line);padding-top:16px}
+
+@media (max-width:900px){
+  .shell{display:block}
+  .side{position:fixed;inset:0 auto 0 0;width:min(86vw,320px);z-index:20;transform:translateX(-102%);transition:transform .2s;box-shadow:0 0 0 100vmax transparent}
+  body.nav-open .side{transform:none;box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}
+  .topbar{display:flex;position:sticky;top:0;z-index:10;gap:12px;align-items:center;padding:10px 16px;padding-top:calc(env(safe-area-inset-top,0px) + 10px);background:var(--panel);border-bottom:1px solid var(--line)}
+  html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 64px)}
+  details.op>summary{grid-template-columns:54px 1fr}
+  .s{grid-column:1/-1}
+  main{padding-top:24px}
+  h1{font-size:28px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.side{transition:none}}
+</style>
+</head>
+<body>
+<div class="topbar"><button class="btn" id="menu" aria-label="Open navigation">Menu</button><strong>WEGA GPS API Reference</strong></div>
+<div class="shell">
+  <aside class="side" id="side">
+    <div class="brand">WEGA GPS API<small>Version 6.16.0, OpenAPI 3.1.0</small></div>
+    <input class="search" id="q" type="search" placeholder="Filter endpoints" aria-label="Filter endpoints">
+    <nav class="nav" id="nav"></nav>
+  </aside>
+  <main id="main">
+    <section id="introduction">
+      <h1>WEGA GPS API Reference</h1>
+      <p class="lede">REST API for the WEGA GPS tracking server. Manage devices, read positions and events, run reports, and send commands.</p>
+      <p style="max-width:70ch;color:var(--ink2)">To use the API you need a server instance. For testing you can use one of the <a href="https://portal.wegagps.lk/login" target="_blank" rel="noopener">free demo servers</a>. For production, install your own server or get a <a href="https://portal.wegagps.lk/login" target="_blank" rel="noopener">subscription service</a>.</p>
+      <div class="meta">
+        <span>License <b><a href="https://www.apache.org/licenses/LICENSE-2.0.html" target="_blank" rel="noopener">Apache 2.0</a></b></span>
+        <span>Support <b><a href="mailto:hello@builtapps.com">hello@builtapps.com</a></b></span>
+        <span>Website <b><a href="https://portal.wegagps.lk/login" target="_blank" rel="noopener">portal.wegagps.lk</a></b></span>
+      </div>
+      <div class="controls">
+        <label>Server
+         <select class="sel" id="server">
+          <option value="https://portal.wegagps.lk/api">Demo Server 1</option>
+          <option value="http://localhost:80">Demo Server 2</option>
+        </select>
+        </label>
+        <input class="txt" id="custom" value="https://portal.wegagps.lk/login" aria-label="Custom base URL" hidden>
+        <label>Authentication
+          <select class="sel" id="auth"><option value="basic">Basic</option><option value="bearer">Bearer token</option></select>
+        </label>
+        <button class="btn" id="expand">Expand all</button>
+        <button class="btn" id="collapse">Collapse all</button>
+      </div>
+      <p style="font-size:13.5px;color:var(--ink2);margin:6px 0 0">The server and authentication choices update every curl example on this page.</p>
+    </section>
+
+    <section class="sec" id="authentication">
+      <h2>Authentication</h2>
+      <p>Every endpoint requires authentication unless it is marked <span class="tag">Public</span>. Two schemes are supported and either one is accepted.</p>
+      <div class="scroll"><table class="tbl">
+        <tr><th>Scheme</th><th>Type</th><th>How to use it</th></tr>
+        <tr><td class="n">BasicAuth</td><td class="t">http, basic</td><td>Send your WEGA GPS email and password as HTTP Basic credentials.</td></tr>
+        <tr><td class="n">ApiKey</td><td class="t">http, bearer</td><td>Send a session token in the <code>Authorization: Bearer</code> header. Create one with <a href="#postSessionToken">POST /session/token</a> and revoke it with <a href="#postSessionTokenRevoke">POST /session/token/revoke</a>.</td></tr>
+      </table></div>
+    </section>
+
+    <section class="sec" id="conventions">
+      <h2>Conventions</h2>
+      <p>Details that apply across the whole API.</p>
+      <div class="scroll"><table class="tbl">
+        <tr><th>Topic</th><th>Behavior</th></tr>
+        <tr><td>Dates and times</td><td>ISO 8601, for example <code>1963-11-22T18:30:00Z</code>.</td></tr>
+        <tr><td>Units</td><td>Speed is in knots, distance in meters, fuel in liters, altitude in meters, and course in degrees (0 to 360, 0 is true north).</td></tr>
+        <tr><td>List endpoints</td><td>Most list endpoints accept <code>all</code> (admins and managers only), <code>userId</code>, <code>limit</code>, <code>offset</code> and <code>keyword</code>. Without parameters they return the objects the current user can access.</td></tr>
+        <tr><td>Multiple values</td><td>Pass repeated parameters, for example <code>id=31&amp;id=42</code>. Report endpoints accept repeated <code>deviceId</code> and <code>groupId</code>; at least one of them is required.</td></tr>
+        <tr><td>Linking objects</td><td>Relationships between objects (user to device, device to geofence and so on) are managed with the <a href="#tag-Permissions">Permissions</a> endpoints. Order matters in the permission body.</td></tr>
+        <tr><td>Report downloads</td><td>Most reports also have a <code>/{type}</code> variant. Use <code>xlsx</code> to download a spreadsheet or <code>mail</code> to receive it by email asynchronously (204).</td></tr>
+        <tr><td>Live positions</td><td>Use the <a href="https://portal.wegagps.lk/login" target="_blank" rel="noopener">WEGA GPS WebSocket API</a> instead of polling <a href="#getPositions">GET /positions</a>.</td></tr>
+        <tr><td>MCP</td><td>Operations marked <span class="tag">MCP</span> carry the <code>x-mcp</code> flag in the OpenAPI document.</td></tr>
+      </table></div>
+    </section>
+
+    <div id="content"></div>
+    <div class="empty" id="empty">No endpoints match your filter.</div>
+
+    <section class="sec" id="schemas"><h2>Schemas</h2><p>Objects used in request and response bodies.</p><div id="schema-list"></div></section>
+    <footer>Generated from the WEGA GPS OpenAPI 3.1.0 specification, version 6.16.0.</footer>
+  </main>
+</div>
+
+<script>
+/* ---------- data ---------- */
+const ISO='in ISO 8601 format. eg. `1963-11-22T18:30:00Z`';
+const I64='integer (int64)', DT='string (date-time)', XLSX='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const SERVERS = [
+  ['Demo Server 1', 'https://portal.wegagps.lk/api'],
+  ['Demo Server 2', 'https://portal.wegagps.lk/api'],
+  ['Demo Server 3', 'https://portal.wegagps.lk/api'],
+  ['Demo Server 4', 'https://portal.wegagps.lk/api'],
+  ['Subscription Server', 'https://portal.wegagps.lk/api'],
+  ['Other server', 'custom']
+];
+const TAGS=[
+  ['Server','Server information'],['Session','User session management'],['Devices','Device management'],['Groups','Group management'],
+  ['Share','Share devices and groups'],['Users','User management'],['Permissions','User permissions and other object linking'],
+  ['Positions','Retrieving raw location information'],['Events','Retrieving event information'],['Reports','Reports generation'],
+  ['Notifications','User notifications management'],['Geofences','Geofence management'],['Commands','Sending commands to devices and stored command management'],
+  ['Attributes','Computed attributes management'],['Drivers','Drivers management'],['Maintenance','Maintenance management'],
+  ['Calendars','Calendar management'],['Statistics','Retrieving server statistics'],['Health','Checking server health status'],
+  ['Orders','Order management'],['Audit','Audit log access'],['Password','Password reset flow'],['Stream','Live video streaming']
+];
+const f=(n,t,d)=>[n,t,d];
+const SCHEMAS={
+ Position:['',[f('id',I64,'Unique position record identifier'),f('deviceId',I64,'Identifier of the device that reported this position'),f('protocol','string','Device protocol name that produced the message'),f('deviceTime',DT,ISO),f('fixTime',DT,ISO),f('serverTime',DT,ISO),f('valid','boolean','Indicates whether the position was marked as valid by the device'),f('latitude','number','Latitude in decimal degrees'),f('longitude','number','Longitude in decimal degrees'),f('altitude','number','Altitude above sea level in meters'),f('speed','number','in knots'),f('course','number','Heading in degrees (0-360) where 0 is true north'),f('address','string','Resolved reverse-geocoded address if available'),f('accuracy','number','Estimated positional accuracy in meters when provided'),f('network','object','Network metadata (e.g. cell or Wi-Fi data) supplied by the device'),f('geofenceIds','integer[]','List of geofence ids applicable to this position'),f('attributes','object','Custom key-value attributes sent by the device or enrichments')]],
+ User:['',[f('id',I64,'Unique user identifier'),f('name','string','User display name'),f('email','string','Email address used for login and notifications'),f('phone','string | null','Contact phone number for alerts'),f('readonly','boolean','When true, the user cannot change settings'),f('administrator','boolean','Grants full administrative privileges when enabled'),f('map','string | null','Preferred default map layer for the user'),f('latitude','number','Default map center latitude for this user'),f('longitude','number','Default map center longitude for this user'),f('zoom','integer','Default map zoom level on login'),f('password','string','Password for user authentication'),f('coordinateFormat','string | null','Preferred coordinate display format'),f('disabled','boolean','Indicates whether the user account is disabled'),f('expirationTime',DT+' | null',ISO),f('deviceLimit','integer','Maximum number of devices the user can manage'),f('userLimit','integer','Maximum number of subordinate users'),f('deviceReadonly','boolean','Restricts user from modifying device attributes'),f('limitCommands','boolean','Prevents user from sending unsupported commands'),f('fixedEmail','boolean','Locks the email field to avoid changes'),f('poiLayer','string | null','External POI layer configured for the user'),f('attributes','object','Additional custom user attributes')]],
+ Server:['',[f('id',I64,'Unique server configuration identifier'),f('registration','boolean','Whether new user registrations are allowed'),f('readonly','boolean','When true only administrators can modify server-wide settings'),f('deviceReadonly','boolean','Disallow device attribute changes for non-admins'),f('limitCommands','boolean','Restrict command execution to supported protocol commands'),f('map','string','Default map layer identifier'),f('bingKey','string','Bing Maps API key used when Bing is selected as a provider'),f('mapUrl','string','Custom tile server URL template if configured'),f('poiLayer','string','External point-of-interest layer configuration'),f('announcement','string','Message displayed to all users in the web application'),f('latitude','number','Default map center latitude'),f('longitude','number','Default map center longitude'),f('zoom','integer','Default map zoom level'),f('version','string','WEGA GPS server version string'),f('forceSettings','boolean','Forces users to use the server-wide settings instead of their own'),f('coordinateFormat','string','Default coordinate format for displaying positions'),f('openIdEnabled','boolean','Indicates whether OpenID authentication is available'),f('openIdForce','boolean','Require OpenID authentication for all users when enabled'),f('attributes','object','Additional server-level configuration values')]],
+ Command:['',[f('id',I64,'Unique saved command identifier'),f('deviceId',I64,'Target device identifier when the command is bound to one device'),f('description','string','User friendly label displayed in the UI'),f('type','string','Command type as defined by the device protocol'),f('textChannel','boolean','Whether to send the command using the SMS channel'),f('attributes','object','Additional parameters required by the command type')]],
+ QueuedCommand:['',[f('id',I64,'Identifier of the queued command job'),f('deviceId',I64,'Device identifier the queued command will be delivered to'),f('type','string','Command type that will be executed'),f('textChannel','boolean','Indicates whether the queued command uses SMS delivery'),f('attributes','object','Stored parameters for the queued command')]],
+ Device:['',[f('id',I64,'Unique identifier assigned by WEGA GPS'),f('name','string','Human friendly device label'),f('uniqueId','string','Hardware or protocol specific unique identifier'),f('status','string','Current connection status such as `online`, `offline`, or `unknown`'),f('disabled','boolean','Whether the device is disabled by an administrator'),f('lastUpdate',DT+' | null',ISO),f('positionId',I64+' | null','Identifier of the last known position'),f('groupId',I64+' | null','Parent group identifier when the device is assigned to a group'),f('phone','string | null','Contact phone number used for SMS commands'),f('model','string | null','Device model or hardware revision'),f('contact','string | null',"Responsible person's contact information"),f('category','string | null','Free form category used for grouping devices in the UI'),f('attributes','object','Custom attributes for protocol or business specific data')]],
+ Group:['',[f('id',I64,'Unique group identifier'),f('name','string','Group display name'),f('groupId',I64,'Parent group identifier for nested grouping'),f('attributes','object','Arbitrary metadata attached to the group')]],
+ Permission:['A permission map that contains two object indexes. It is used to link and unlink objects. Order is important. Example: `{ "deviceId": 8, "geofenceId": 16 }`',[f('userId',I64,'User id, can be only first parameter'),f('deviceId',I64,'Device id, can be first parameter or second only in combination with userId'),f('groupId',I64,'Group id, can be first parameter or second only in combination with userId'),f('geofenceId',I64,'Geofence id, can be second parameter only'),f('notificationId',I64,'Notification id, can be second parameter only'),f('calendarId',I64,'Calendar id, can be second parameter only and only in combination with userId'),f('attributeId',I64,'Computed attribute id, can be second parameter only'),f('driverId',I64,'Driver id, can be second parameter only'),f('managedUserId',I64,'User id, can be second parameter only and only in combination with userId'),f('commandId',I64,'Saved command id, can be second parameter only')]],
+ CommandType:['',[f('type','string','Command type identifier')]],
+ Geofence:['',[f('id',I64,'Unique identifier for the geofence'),f('name','string','Human-readable name shown in lists and maps'),f('description','string','Details about the geofence for display in the UI'),f('area','string','Geofence area definition encoded as a WKT string'),f('calendarId',I64,'Calendar identifier limiting when the geofence is active'),f('attributes','object','Custom key-value pairs for integrations or UI overrides')]],
+ Notification:['',[f('id',I64,'Unique identifier for the notification'),f('type','string','Notification category such as geofenceEnter or ignitionOn'),f('description','string | null','User-defined text describing the notification'),f('always','boolean','Whether the notification triggers regardless of schedule'),f('commandId',I64,'Identifier of the command to send when the notification triggers'),f('notificators','string','Comma-separated delivery channels (for example, web, mail)'),f('calendarId',I64,'Calendar identifier restricting when the notification is active'),f('attributes','object','Additional custom attributes used by notificators or templates')]],
+ NotificationMessage:['',[f('subject','string','Subject or title of the notification'),f('digest','string','Short summary shown in compact contexts; defaults to the body when omitted'),f('body','string','Full notification text (required)'),f('priority','boolean','Whether the message should be treated as high priority')]],
+ NotificationType:['',[f('type','string','Notification type identifier')]],
+ Event:['',[f('id',I64,'Unique event identifier'),f('type','string','Event type name'),f('eventTime',DT,ISO),f('deviceId',I64,'Device associated with the event'),f('positionId',I64,'Position record linked to the event when applicable'),f('geofenceId',I64,'Geofence referenced by the event if any'),f('maintenanceId','integer','Maintenance record tied to the event'),f('attributes','object','Additional event-specific attributes')]],
+ CombinedReportItem:['',[f('deviceId',I64,'Device identifier for the report item'),f('route','number[][]','Simplified route as `[longitude, latitude]` pairs'),f('events','Event[]',''),f('positions','Position[]','')]],
+ ReportSummary:['',[f('deviceId',I64,'Device identifier for the summary row'),f('deviceName','string','Human readable device name'),f('maxSpeed','number','in knots'),f('averageSpeed','number','in knots'),f('distance','number','in meters'),f('spentFuel','number','in liters'),f('engineHours','integer','Engine hours accumulated for the report period')]],
+ ReportGeofences:['',[f('deviceId',I64,'Device identifier for the geofence interval'),f('deviceName','string','Human readable device name'),f('geofenceId',I64,'Geofence identifier'),f('startTime',DT,ISO),f('endTime',DT,ISO)]],
+ ReportTrips:['',[f('deviceId',I64,'Device identifier for the trip'),f('deviceName','string','Human readable device name'),f('maxSpeed','number','in knots'),f('averageSpeed','number','in knots'),f('distance','number','in meters'),f('spentFuel','number','in liters'),f('duration','integer','Trip duration in seconds'),f('startTime',DT,ISO),f('startAddress','string','Address where the trip started'),f('startLat','number','Starting latitude in decimal degrees'),f('startLon','number','Starting longitude in decimal degrees'),f('endTime',DT,ISO),f('endAddress','string','Address where the trip ended'),f('endLat','number','Ending latitude in decimal degrees'),f('endLon','number','Ending longitude in decimal degrees'),f('driverUniqueId','string','Unique identifier of the driver assigned to the trip'),f('driverName','string','Name of the driver assigned to the trip')]],
+ ReportStops:['',[f('deviceId',I64,'Device identifier for the stop'),f('deviceName','string','Human readable device name'),f('duration','integer','Stop duration in seconds'),f('startTime',DT,ISO),f('address','string','Address where the stop occurred'),f('lat','number','Stop latitude in decimal degrees'),f('lon','number','Stop longitude in decimal degrees'),f('endTime',DT,ISO),f('spentFuel','number','in liters'),f('engineHours','integer','Engine hours accumulated during the stop')]],
+ Statistics:['',[f('captureTime',DT,ISO),f('activeUsers','integer','Number of active users in the capture period'),f('activeDevices','integer','Number of active devices in the capture period'),f('requests','integer','Total API requests processed'),f('messagesReceived','integer','Number of device messages received'),f('messagesStored','integer','Number of device messages stored to the database')]],
+ DeviceAccumulators:['',[f('deviceId',I64,'Device identifier for the accumulator entry'),f('totalDistance','number','in meters'),f('hours','number','Total engine hours recorded by the device')]],
+ Calendar:['',[f('id',I64,'Unique calendar identifier'),f('name','string','Calendar display name'),f('data','string','base64 encoded in iCalendar format'),f('attributes','object','Custom calendar attributes')]],
+ Attribute:['A computed attribute.',[f('id',I64,'Unique computed attribute identifier'),f('description','string','Human readable name of the attribute'),f('attribute','string','Attribute name used in expressions'),f('expression','string','Expression that defines how the attribute is calculated'),f('type','string','String | Number | Boolean')]],
+ Driver:['',[f('id',I64,'Unique driver identifier'),f('name','string','Driver full name'),f('uniqueId','string','Unique external identifier for the driver'),f('attributes','object','Custom driver attributes')]],
+ Maintenance:['',[f('id',I64,'Unique maintenance item identifier'),f('name','string','Maintenance task name'),f('type','string','Metric the maintenance is based on'),f('start','number','Current accumulated value when maintenance tracking starts'),f('period','number','Threshold value after which maintenance is due'),f('attributes','object','Custom maintenance attributes')]],
+ Order:['',[f('id',I64,'Unique order identifier'),f('uniqueId','string','External order identifier used by clients'),f('description','string','Additional details about the order assignment'),f('fromAddress','string','Pickup location address'),f('toAddress','string','Destination address'),f('attributes','object','Custom order attributes')]],
+ Action:['An audit log entry.',[f('id',I64,'Unique action identifier'),f('actionTime',DT,'When the action was recorded'),f('address','string','Client address that initiated the action'),f('userId',I64,'Identifier of the User who performed the action'),f('userEmail','string','Email of the User who performed the action'),f('actionType','string','Action category (e.g. login, edit, link)'),f('objectType','string','Type of object affected by the action'),f('objectId',I64,'Identifier of the affected object'),f('attributes','object','Additional action attributes')]]
+};
+
+/* parameters */
+const P=(n,i,t,d,r)=>({n,i,t,d:d||'',r});
+const ALL=P('all','query','boolean','Can only be used by admins or managers to fetch all entities');
+const UID=P('userId','query','integer','Standard users can use this only with their own _userId_');
+const DID=P('deviceId','query','integer','Standard users can use this only with _deviceId_s, they have access to');
+const GID=P('groupId','query','integer','Standard users can use this only with _groupId_s, they have access to');
+const REF=P('refresh','query','boolean','');
+const EXA=P('excludeAttributes','query','boolean','');
+const LIM=[P('limit','query','integer','Limit the number of returned results'),P('offset','query','integer','Offset for pagination'),P('keyword','query','string','Search keyword filter')];
+const ID=P('id','path','integer','',1);
+const FROM=P('from','query',DT,ISO,1), TO=P('to','query',DT,ISO,1);
+const DIDS=P('deviceId','query','integer[]','Repeat the parameter to pass several devices. At least one deviceId or groupId is required.');
+const GIDS=P('groupId','query','integer[]','Repeat the parameter to pass several groups.');
+const TYPE=P('type','path','string (xlsx | mail)','`xlsx` downloads the report, `mail` delivers it by email asynchronously.',1);
+const fld=(n,t,d,r)=>({n,t,d:d||'',r});
+const J=s=>({ct:'application/json',schema:s});
+const FORM=fields=>({ct:'application/x-www-form-urlencoded',fields});
+const UN=[401,'Unauthorized'], NF=[404,'Not found'], BAD=[400,'Bad request'];
+
+const OPS=[];
+const op=(tag,method,path,id,summary,desc,o={})=>OPS.push(Object.assign({tag,method,path,id,summary,desc:desc||''},o));
+
+function crud(c){
+  const {tag,base,stem,sch,a,pl,lp,ld,le,pe}=c;
+  op(tag,'get',base,'get'+stem,'Fetch a list of '+pl,ld||('Without params, it returns a list of '+pl+' the user has access to'),{q:lp,mcp:1,res:[[200,'OK',sch+'[]']].concat(le||[UN])});
+  op(tag,'post',base,'post'+stem,'Create '+a,'',{body:J(sch),res:[[200,'OK',sch]].concat(pe||[UN,BAD])});
+  op(tag,'get',base+'/{id}','get'+stem+'Id','Fetch '+a,'',{q:[ID],res:[[200,'OK',sch],UN,NF]});
+  op(tag,'put',base+'/{id}','put'+stem+'Id','Update '+a,'',{q:[ID],body:J(sch),res:[[200,'OK',sch],UN,BAD]});
+  op(tag,'delete',base+'/{id}','delete'+stem+'Id','Delete '+a,'',{q:[ID],res:[[204,'No Content'],UN]});
+}
+
+/* Server */
+op('Server','get','/server','getServer','Fetch Server information','',{pub:1,mcp:1,res:[[200,'OK','Server'],BAD]});
+op('Server','put','/server','putServer','Update Server information','',{body:J('Server'),res:[[200,'OK','Server'],UN,BAD]});
+op('Server','get','/server/geocode','getServerGeocode','Reverse geocode coordinates','',{q:[P('latitude','query','number (double)','',1),P('longitude','query','number (double)','',1)],res:[[200,'OK','string','text/plain'],[500,'Reverse geocoding is not enabled'],UN]});
+op('Server','get','/server/timezones','getServerTimezones','Fetch available timezones','',{res:[[200,'OK','string[]'],UN]});
+op('Server','post','/server/file/{path}','postServerFilePath','Upload a server file','',{q:[P('path','path','string','',1)],body:{ct:'application/octet-stream',binary:1},res:[[200,'OK'],BAD]});
+op('Server','get','/server/gc','getServerGc','Trigger garbage collection','',{res:[[200,'OK'],UN]});
+op('Server','get','/server/cache','getServerCache','Fetch cache diagnostics','',{res:[[200,'OK','string','text/plain'],UN]});
+op('Server','post','/server/reboot','postServerReboot','Reboot the server process','',{res:[[200,'OK'],UN,BAD]});
+
+/* Session */
+op('Session','get','/session','getSession','Fetch Session information','',{pub:1,q:[P('token','query','string')],res:[[200,'OK','User'],NF]});
+op('Session','post','/session','postSession','Create a new Session','',{pub:1,body:FORM([fld('email','string','',1),fld('password','string (password)','',1)]),res:[[200,'OK','User'],UN]});
+op('Session','delete','/session','deleteSession','Close the Session','',{res:[[204,'No Content'],UN]});
+op('Session','get','/session/{id}','getSessionId','Open a Session as another User','Admin or manager only. Establishes a session impersonating the specified user.',{q:[ID],res:[[200,'OK','User'],UN,NF]});
+op('Session','post','/session/token','postSessionToken','Generate Session Token','',{body:FORM([fld('expiration',DT,'')]),optBody:1,res:[[200,'Token string','string','text/plain'],UN,BAD]});
+op('Session','post','/session/token/revoke','postSessionTokenRevoke','Revoke Session Token','',{body:FORM([fld('token','string','',1)]),res:[[204,'No Content'],BAD]});
+op('Session','get','/session/openid/auth','getSessionOpenidAuth','Begin OpenID Connect authentication','',{res:[[303,'Redirect to OpenID Connect identity provider'],[400,'OpenID Connect is not configured'],['default','Unexpected error']]});
+op('Session','get','/session/openid/callback','getSessionOpenidCallback','OpenID Callback','',{res:[[303,'Successful authentication, redirect to homepage'],[400,'Invalid or expired callback parameters'],['default','Unexpected error']]});
+
+/* Devices */
+crud({tag:'Devices',base:'/devices',stem:'Devices',sch:'Device',a:'a Device',pl:'Devices',ld:"Without any params, returns a list of the user's devices",
+  lp:[ALL,UID,P('id','query','integer','To fetch one or more devices. Multiple params can be passed like `id=31&id=42`'),P('uniqueId','query','string','To fetch one or more devices. Multiple params can be passed like `uniqueId=333331&uniqueId=44442`'),P('excludeAttributes','query','boolean','Exclude attributes field from device payload')].concat(LIM),
+  le:[[400,'No permission']]});
+op('Devices','put','/devices/{id}/accumulators','putDevicesIdAccumulators','Update total distance and hours of the Device','',{q:[ID],body:J('DeviceAccumulators'),res:[[204,'No Content'],UN,BAD]});
+op('Devices','post','/devices/{id}/image','postDevicesIdImage','Upload/Update Device image','',{q:[ID],body:{ct:'image/*',binary:1},res:[[200,'OK','string','text/plain','device.png'],[400,'Invalid image type or size'],[404,'Device not found']]});
+
+/* Groups */
+crud({tag:'Groups',base:'/groups',stem:'Groups',sch:'Group',a:'a Group',pl:'Groups',ld:'Without any params, returns a list of the Groups the user belongs to',lp:[ALL,UID].concat(LIM),pe:[[400,'No permission']]});
+
+/* Share */
+op('Share','post','/share/device','postShareDevice','Share device location','',{body:FORM([fld('deviceId','integer','',1),fld('expiration',DT,'',1)]),res:[[200,'OK','string','text/plain','eyJhbGciOi...'],[403,'Sharing is disabled or temporary user']]});
+op('Share','post','/share/group','postShareGroup','Share group devices','',{body:FORM([fld('groupId','integer','',1),fld('expiration',DT,'',1)]),res:[[200,'OK','string','text/plain','eyJhbGciOi...'],[403,'Sharing is disabled or temporary user']]});
+
+/* Users */
+op('Users','get','/users','getUsers','Fetch a list of Users','',{mcp:1,q:[P('userId','query','string','Can only be used by admin or manager users')].concat(LIM),res:[[200,'OK','User[]'],[400,'No Permission']]});
+op('Users','post','/users','postUsers','Create a User','',{body:J('User'),res:[[200,'OK','User'],UN,BAD]});
+op('Users','post','/users/totp','postUsersTotp','Generate TOTP secret','',{pub:1,res:[[200,'OK','string','text/plain'],BAD]});
+op('Users','get','/users/{id}','getUsersId','Fetch a User','',{q:[ID],res:[[200,'OK','User'],UN,NF]});
+op('Users','put','/users/{id}','putUsersId','Update a User','',{q:[ID],body:J('User'),res:[[200,'OK','User'],UN,BAD]});
+op('Users','delete','/users/{id}','deleteUsersId','Delete a User','',{q:[ID],res:[[204,'No Content'],UN]});
+
+/* Permissions */
+op('Permissions','get','/permissions','getPermissions','Fetch permission links between Objects','Provide exactly two `*Id` query parameters matching the Permission body shape (e.g. `reportId` and `deviceId`). Use `0` on a side to mean "any", e.g. `?reportId=5&deviceId=0` lists all devices linked to report 5. At least one side must be non-zero.',{q:[P('*Id','query','integer','Exactly two of the Permission fields, such as `userId` and `deviceId`. Use `0` on one side to mean "any".',1)],res:[[200,'OK','Permission[]'],BAD]});
+op('Permissions','post','/permissions','postPermissions','Link an Object to another Object','',{body:J('Permission'),res:[[204,'No Content'],[400,'No permission']]});
+op('Permissions','delete','/permissions','deletePermissions','Unlink an Object from another Object','',{body:J('Permission'),res:[[204,'No Content'],UN]});
+op('Permissions','post','/permissions/bulk','postPermissionsBulk','Link multiple Objects in a single request','',{body:J('Permission[]'),res:[[204,'No Content'],BAD]});
+op('Permissions','delete','/permissions/bulk','deletePermissionsBulk','Unlink multiple Objects in a single request','',{body:J('Permission[]'),res:[[204,'No Content'],BAD]});
+
+/* Positions */
+op('Positions','get','/positions','getPositions','Fetch a list of Positions','We strongly recommend using [WEGA GPS WebSocket API](https://portal.wegagps.lk/login) instead of periodically polling positions endpoint. Without any params, it returns a list of last known positions for all the user\'s Devices. _from_ and _to_ fields are not required with _id_.',{mcp:1,q:[P('deviceId','query','integer','_deviceId_ is optional, but requires the _from_ and _to_ parameters when used'),P('from','query',DT,ISO),P('to','query',DT,ISO),P('id','query','integer','To fetch one or more positions. Multiple params can be passed like `id=31&id=42`')],res:[[200,'OK','Position[]'],[200,'OK','Position[]','text/csv'],[200,'OK','Position[]','application/gpx+xml'],UN]});
+op('Positions','delete','/positions','deletePositions','Deletes all the Positions of a device in the time span specified','',{q:[P('deviceId','query','integer','',1),FROM,TO],res:[[204,'No Content'],BAD]});
+op('Positions','delete','/positions/{id}','deletePositionsId','Delete a Position','',{q:[ID],res:[[204,'No Content'],NF]});
+op('Positions','get','/positions/kml','getPositionsKml','Export Positions as KML','',{q:[P('deviceId','query','integer','',1),FROM,TO],res:[[200,'OK','binary','application/vnd.google-earth.kml+xml'],UN]});
+op('Positions','get','/positions/csv','getPositionsCsv','Export Positions as CSV','',{q:[P('deviceId','query','integer','',1),P('geofenceId','query','integer'),FROM,TO],res:[[200,'OK','binary','text/csv'],UN]});
+op('Positions','get','/positions/gpx','getPositionsGpx','Export Positions as GPX','',{q:[P('deviceId','query','integer','',1),FROM,TO],res:[[200,'OK','binary','application/gpx+xml'],UN]});
+
+/* Events */
+op('Events','get','/events/{id}','getEventsId','Fetch an Event','Returns a single Event record with full context for the specified identifier',{q:[ID],res:[[200,'OK','Event'],UN,NF]});
+
+/* Reports */
+const RQ=[DIDS,GIDS,FROM,TO];
+op('Reports','get','/reports/combined','getReportsCombined','Fetch a combined route, Events and Positions report for the Devices or Groups','At least one _deviceId_ or one _groupId_ must be passed',{mcp:1,q:RQ,res:[[200,'OK','CombinedReportItem[]'],UN]});
+op('Reports','get','/reports/route','getReportsRoute','Fetch a list of Positions within the time period for the Devices or Groups','At least one _deviceId_ or one _groupId_ must be passed',{mcp:1,q:RQ,res:[[200,'OK','Position[]'],[200,'OK','Position[]',XLSX],UN]});
+const repType=(name,path,id)=>op('Reports','get',path+'/{type}',id,'Download the '+name+' report as a spreadsheet or send it by email','Use `type=xlsx` to download the report, `type=mail` to deliver it by email asynchronously.',{q:[TYPE].concat(path==='/reports/devices'?[]:RQ).concat(path==='/reports/summary'?[P('daily','query','boolean','Aggregate values by day instead of the full period')]:[]),res:[[200,'Spreadsheet attachment','binary',XLSX],[204,'Report queued for email delivery'],UN,NF]});
+repType('route','/reports/route','getReportsRouteType');
+op('Reports','get','/reports/events','getReportsEvents','Fetch a list of Events within the time period for the Devices or Groups','At least one _deviceId_ or one _groupId_ must be passed',{mcp:1,q:[DIDS,GIDS,P('type','query','string[]','`%` can be used to return events of all types. Pass as a comma-separated list.'),FROM,TO],res:[[200,'OK','Event[]'],[200,'OK','Event[]',XLSX],UN]});
+op('Reports','get','/reports/events/{type}','getReportsEventsType','Download the events report as a spreadsheet or send it by email','Use `type=xlsx` to download the report, `type=mail` to deliver it by email asynchronously.',{q:[TYPE,DIDS,GIDS,P('type','query','string[]','Event types to include; `%` matches all. Pass as a comma-separated list.'),P('alarm','query','string[]','Alarm types to include. Pass as a comma-separated list.'),FROM,TO],res:[[200,'Spreadsheet attachment','binary',XLSX],[204,'Report queued for email delivery'],UN,NF]});
+op('Reports','get','/reports/geofences','getReportsGeofences','Fetch geofence enter/exit intervals within the time period for Devices or Groups','At least one _deviceId_ or one _groupId_ must be passed',{mcp:1,q:[DIDS,GIDS,P('geofenceId','query','integer[]','Repeat the parameter to pass several geofences.'),FROM,TO],res:[[200,'OK','ReportGeofences[]'],UN]});
+op('Reports','get','/reports/summary','getReportsSummary','Fetch a list of ReportSummary within the time period for the Devices or Groups','At least one _deviceId_ or one _groupId_ must be passed',{mcp:1,q:RQ,res:[[200,'OK','ReportSummary[]'],[200,'OK','ReportSummary[]',XLSX],UN]});
+repType('summary','/reports/summary','getReportsSummaryType');
+op('Reports','get','/reports/trips','getReportsTrips','Fetch a list of ReportTrips within the time period for the Devices or Groups','At least one _deviceId_ or one _groupId_ must be passed',{mcp:1,q:RQ,res:[[200,'OK','ReportTrips[]'],[200,'OK','ReportTrips[]',XLSX],UN]});
+repType('trips','/reports/trips','getReportsTripsType');
+op('Reports','get','/reports/stops','getReportsStops','Fetch a list of ReportStops within the time period for the Devices or Groups','At least one _deviceId_ or one _groupId_ must be passed',{mcp:1,q:RQ,res:[[200,'OK','ReportStops[]'],[200,'OK','ReportStops[]',XLSX],UN]});
+repType('stops','/reports/stops','getReportsStopsType');
+repType('devices','/reports/devices','getReportsDevicesType');
+
+/* Notifications */
+const NLP=[ALL,UID,DID,GID,REF].concat(LIM);
+op('Notifications','get','/notifications','getNotifications','Fetch a list of Notifications','Without params, it returns a list of Notifications the user has access to',{mcp:1,q:NLP,res:[[200,'OK','Notification[]'],UN]});
+op('Notifications','post','/notifications','postNotifications','Create a Notification','',{body:J('Notification'),res:[[200,'OK','Notification'],UN,BAD]});
+op('Notifications','get','/notifications/{id}','getNotificationsId','Fetch a Notification','',{q:[ID],res:[[200,'OK','Notification'],UN,NF]});
+op('Notifications','put','/notifications/{id}','putNotificationsId','Update a Notification','',{q:[ID],body:J('Notification'),res:[[200,'OK','Notification'],UN,BAD]});
+op('Notifications','delete','/notifications/{id}','deleteNotificationsId','Delete a Notification','',{q:[ID],res:[[204,'No Content'],UN]});
+op('Notifications','get','/notifications/types','getNotificationsTypes','Fetch a list of available Notification types','',{res:[[200,'OK','NotificationType[]'],UN]});
+op('Notifications','get','/notifications/notificators','getNotificationsNotificators','Fetch a list of available Notificators','',{q:[P('announcement','query','boolean','When `true`, exclude notificators that cannot deliver announcements')],res:[[200,'OK','NotificationType[]'],UN]});
+op('Notifications','post','/notifications/test','postNotificationsTest','Send test notification to current user via Email and SMS','',{res:[[204,'Successful sending'],[400,'Could happen if sending has failed']]});
+op('Notifications','post','/notifications/test/{notificator}','postNotificationsTestNotificator','Send a test notification to the current User using the specified notificator','',{q:[P('notificator','path','string','',1)],res:[[204,'Successful sending'],[400,'Could happen if sending has failed']]});
+op('Notifications','post','/notifications/send/{notificator}','postNotificationsSendNotificator','Send a custom notification to selected users using the specified notificator','',{q:[P('notificator','path','string','',1),P('userId','query','integer[] (int64)','Optional list of user ids to send the notification to; if omitted, sends to all permitted users')],body:J('NotificationMessage'),res:[[204,'Successful sending'],[400,'Could happen if sending has failed']]});
+
+/* Geofences */
+crud({tag:'Geofences',base:'/geofences',stem:'Geofences',sch:'Geofence',a:'a Geofence',pl:'Geofences',lp:NLP});
+
+/* Commands */
+op('Commands','get','/commands','getCommands','Fetch a list of Saved Commands','Without params, it returns a list of Saved Commands the user has access to',{mcp:1,q:NLP,res:[[200,'OK','Command[]'],UN]});
+op('Commands','post','/commands','postCommands','Create a Saved Command','',{body:J('Command'),res:[[200,'OK','Command'],UN,BAD]});
+op('Commands','get','/commands/{id}','getCommandsId','Fetch a Saved Command','',{q:[ID],res:[[200,'OK','Command'],UN,NF]});
+op('Commands','put','/commands/{id}','putCommandsId','Update a Saved Command','',{q:[ID],body:J('Command'),res:[[200,'OK','Command'],UN,BAD]});
+op('Commands','delete','/commands/{id}','deleteCommandsId','Delete a Saved Command','',{q:[ID],res:[[204,'No Content'],UN]});
+op('Commands','get','/commands/send','getCommandsSend','Fetch a list of Saved Commands supported by Device at the moment','Return a list of saved commands linked to Device and its groups, filtered by current Device protocol support',{q:[P('deviceId','query','integer','Standard users can use this only with _deviceId_s, they have access to',1)],res:[[200,'OK','Command[]'],[400,"Could happen when the user doesn't have permission for the device"]]});
+op('Commands','post','/commands/send','postCommandsSend','Dispatch commands to device','Dispatch a new command or Saved Command if _body.id_ set',{q:[P('groupId','query','integer','Send the command to all devices in the group')],body:J('Command'),res:[[200,'Command sent','Command'],[202,'Command queued','QueuedCommand | QueuedCommand[]'],[400,"Could happen when the user doesn't have permission or an incorrect command _type_ for the device"]]});
+op('Commands','get','/commands/types','getCommandsTypes','Fetch a list of available Commands for the Device or all possible Commands if Device omitted','',{q:[P('deviceId','query','integer','Internal device identifier. Only works if device has already reported some locations'),P('textChannel','query','boolean','When `true` return SMS commands. If not specified or `false` return data commands')],res:[[200,'OK','CommandType[]'],[400,'Could happen when trying to fetch from a device the user does not have permission']]});
+
+/* Attributes */
+op('Attributes','get','/attributes/computed','getAttributesComputed','Fetch a list of Attributes','Without params, it returns a list of Attributes the user has access to',{mcp:1,q:NLP,res:[[200,'OK','Attribute[]'],UN]});
+op('Attributes','post','/attributes/computed','postAttributesComputed','Create an Attribute','',{body:J('Attribute'),res:[[200,'OK','Attribute'],UN,BAD]});
+op('Attributes','post','/attributes/computed/test','postAttributesComputedTest','Evaluate a Computed Attribute against the latest Device Position','Admin only. Returns the computed value without persisting the attribute.',{q:[P('deviceId','query','integer','',1)],body:J('Attribute'),res:[[200,'OK','number | boolean | string'],[204,'Computation produced no value'],UN,BAD]});
+op('Attributes','get','/attributes/computed/{id}','getAttributesComputedId','Fetch an Attribute','',{q:[ID],res:[[200,'OK','Attribute'],UN,NF]});
+op('Attributes','put','/attributes/computed/{id}','putAttributesComputedId','Update an Attribute','',{q:[ID],body:J('Attribute'),res:[[200,'OK','Attribute'],UN,BAD]});
+op('Attributes','delete','/attributes/computed/{id}','deleteAttributesComputedId','Delete an Attribute','',{q:[ID],res:[[204,'No Content'],UN]});
+
+/* Drivers, Maintenance, Calendars, Orders */
+crud({tag:'Drivers',base:'/drivers',stem:'Drivers',sch:'Driver',a:'a Driver',pl:'Drivers',lp:NLP});
+crud({tag:'Maintenance',base:'/maintenance',stem:'Maintenance',sch:'Maintenance',a:'a Maintenance task',pl:'Maintenance tasks',lp:NLP});
+crud({tag:'Calendars',base:'/calendars',stem:'Calendars',sch:'Calendar',a:'a Calendar',pl:'Calendars',lp:[ALL,UID].concat(LIM)});
+
+/* Statistics, Health, Orders, Audit, Password, Stream */
+op('Statistics','get','/statistics','getStatistics','Fetch Server Statistics','',{q:[FROM,TO],res:[[200,'OK','Statistics[]'],UN]});
+op('Health','get','/health','getHealth','Check server health','Return plain text status for basic uptime monitoring',{pub:1,res:[[200,'Service is healthy','string','text/plain','OK'],[500,'Service is unavailable'],BAD]});
+crud({tag:'Orders',base:'/orders',stem:'Orders',sch:'Order',a:'an Order',pl:'Orders',lp:[ALL,UID,EXA].concat(LIM)});
+op('Audit','get','/audit','getAudit','Fetch audit log Actions','Admin only. Returns Actions performed in the given time window.',{q:[FROM,TO],res:[[200,'OK','Action[]'],UN]});
+op('Password','post','/password/reset','postPasswordReset','Send password reset email','Always responds with `200` regardless of whether the email matches a user.',{pub:1,body:FORM([fld('email','string','',1)]),res:[[200,'OK'],BAD]});
+op('Password','post','/password/update','postPasswordUpdate','Set a new password using a reset token','',{pub:1,body:FORM([fld('token','string','',1),fld('password','string (password)','',1)]),res:[[200,'OK'],[404,'User not found']]});
+op('Stream','get','/stream/{deviceId}/{channel}/live.m3u8','getStreamDeviceIdChannelLiveM3u8','Fetch the HLS playlist for a Device camera channel','',{q:[P('deviceId','path','integer','',1),P('channel','path','integer','',1)],res:[[200,'OK','string','application/vnd.apple.mpegurl'],UN]});
+op('Stream','get','/stream/{deviceId}/{channel}/{index}.ts','getStreamDeviceIdChannelIndexTs','Fetch an HLS video segment for a Device camera channel','',{q:[P('deviceId','path','integer','',1),P('channel','path','integer','',1),P('index','path','integer','',1)],res:[[200,'OK','binary','video/mp2t'],UN]});
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=s=>esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>').replace(/(^|[^\w])_([A-Za-z.]+)_/g,'$1<em>$2</em>');
+const typeHtml=t=>esc(t).replace(/\b([A-Z][A-Za-z]+)\b/g,(m)=>SCHEMAS[m]?'<a href="#schema-'+m+'">'+m+'</a>':m);
+const MC={get:'var(--get)',post:'var(--post)',put:'var(--put)',delete:'var(--del)'};
+const sc=c=>{const n=+c;return isNaN(n)?'':(n<300?'ok':n<400?'rd':'er')};
+const tagId=t=>'tag-'+t;
+
+/* sample values for curl */
+function sample(t){
+  if(/date-time/.test(t))return '2026-10-01T00:00:00Z';
+  if(/^integer/.test(t))return '1';
+  if(/^number/.test(t))return '1.5';
+  if(/^boolean/.test(t))return 'true';
+  if(/xlsx/.test(t))return 'xlsx';
+  return 'string';
+}
+function exampleObj(name){
+  const base=name.replace('[]','');
+  const s=SCHEMAS[base]; if(!s)return {};
+  const o={};
+  s[1].filter(x=>!['id','attributes'].includes(x[0])&&!/^(Event|Position)\[\]$/.test(x[1])&&x[1]!=='number[][]').slice(0,5).forEach(x=>{
+    const t=x[1];
+    o[x[0]]=/^integer/.test(t)?0:/^number/.test(t)?0:/^boolean/.test(t)?false:/date-time/.test(t)?'2026-10-01T00:00:00Z':(x[0]==='expression'?'speed * 1.852':'string');
+  });
+  if(s[1].some(x=>x[0]==='attributes'))o.attributes={};
+  return name.endsWith('[]')?[o]:o;
+}
+function curl(o){
+  const sel=$('#server').value;
+  const base=sel==='custom'?($('#custom').value.replace(/\/$/,'')||'https://portal.wegagps.lk/api'):sel;
+  const auth=$('#auth').value;
+  let path=o.path.replace(/\{([^}]+)\}/g,(m,k)=>k==='type'?'xlsx':(k==='path'?'conf/example.xml':(k==='notificator'?'web':(/^(id|deviceId|channel|index)$/.test(k)?'1':k))));
+  const qs=(o.q||[]).filter(p=>p.i==='query'&&p.r).map(p=>p.n==='*Id'?'userId=1&deviceId=0':p.n+'='+sample(p.t));
+  const url=base+path+(qs.length?'?'+qs.join('&'):'');
+  const lines=['curl'+(o.method==='get'?'':' -X '+o.method.toUpperCase())+' "'+url+'"'];
+  if(!o.pub)lines.push(auth==='basic'?'-u "EMAIL:PASSWORD"':'-H "Authorization: Bearer TOKEN"');
+  const b=o.body;
+  if(b){
+    if(b.schema){lines.push('-H "Content-Type: application/json"');lines.push("-d '"+JSON.stringify(exampleObj(b.schema),null,2).replace(/'/g,"'\\''")+"'");}
+    else if(b.fields){(b.fields.filter(x=>x.r||true)).forEach(x=>lines.push('--data-urlencode "'+x.n+'='+(x.n==='email'?'EMAIL':x.n==='password'?'PASSWORD':sample(x.t))+'"'));}
+    else if(b.binary){lines.push('-H "Content-Type: '+(b.ct==='image/*'?'image/png':b.ct)+'"');lines.push('--data-binary @file');}
+  }
+  return lines.join(' \\\n  ');
+}
+
+/* ---------- render ---------- */
+function pathHtml(p){return esc(p).replace(/\{([^}]+)\}/g,'<i>{$1}</i>');}
+function paramTable(ps){
+  return '<h3>Parameters</h3><div class="scroll"><table class="tbl"><tr><th>Name</th><th>In</th><th>Type</th><th>Description</th></tr>'+
+    ps.map(p=>'<tr><td class="n">'+esc(p.n)+(p.r?'<span class="req">required</span>':'')+'</td><td class="t">'+p.i+'</td><td class="t">'+typeHtml(p.t)+'</td><td>'+fmt(p.d)+'</td></tr>').join('')+'</table></div>';
+}
+function bodySection(b,opt){
+  let h='<h3>Request body'+(opt?' (optional)':'')+'</h3>';
+  if(b.schema){h+='<p style="margin:0">'+esc(b.ct)+', <span class="t" style="font-family:var(--mono);font-size:13px">'+typeHtml(b.schema)+'</span></p>';}
+  else if(b.fields){h+='<p style="margin:0 0 4px">'+esc(b.ct)+'</p><div class="scroll"><table class="tbl"><tr><th>Field</th><th>Type</th><th>Description</th></tr>'+b.fields.map(x=>'<tr><td class="n">'+x.n+(x.r?'<span class="req">required</span>':'')+'</td><td class="t">'+typeHtml(x.t)+'</td><td>'+fmt(x.d)+'</td></tr>').join('')+'</table></div>';}
+  else h+='<p style="margin:0">'+esc(b.ct)+', binary</p>';
+  return h;
+}
+function resTable(rs){
+  return '<h3>Responses</h3><div class="scroll"><table class="tbl"><tr><th>Status</th><th>Description</th><th>Content</th></tr>'+
+    rs.map(r=>{
+      const [code,desc,schema,ct,ex]=r;
+      let c='';
+      if(schema){c='<span class="t">'+(ct?esc(ct):'application/json')+'</span>'+(schema!!==string'||ct!=='text/plain'?'<br><span class="t">'+typeHtml(schema)+'</span>':'')+(ex?'<br>Example: <code>'+esc(ex)+'</code>':'');}
+      return '<tr><td class="sc '+sc(code)+'">'+code+'</td><td>'+fmt(desc)+'</td><td>'+c+'</td></tr>';
+    }).join('')+'</table></div>';
+}
+function opHtml(o){
+  const c=MC[o.method]||'var(--other)';
+  let h='<details class="op" id="'+o.id+'" style="--c:'+c+'" data-s="'+esc((o.method+' '+o.path+' '+o.summary+' '+o.id).toLowerCase())+'">';
+  h+='<summary><span class="m">'+o.method.toUpperCase()+'</span><span class="p">'+pathHtml(o.path)+'</span><span class="s">'+esc(o.summary)+(o.pub?' <span class="tag">Public</span>':'')+(o.mcp?' <span class="tag" title="Marked x-mcp in the spec">MCP</span>':'')+'</span></summary>';
+  h+='<div class="body">';
+  if(o.desc)h+='<p class="d">'+fmt(o.desc)+'</p>';
+  h+='<div class="id">operationId: '+o.id+(o.pub?'. No authentication required.':'')+'</div>';
+  if(o.q&&o.q.length)h+=paramTable(o.q);
+  if(o.body)h+=bodySection(o.body,o.optBody);
+  h+=resTable(o.res||[]);
+  h+='<h3>Example</h3><pre data-op="'+o.id+'"></pre>';
+  return h+'</div></details>';
+}
+function build(){
+  const nav=$('#nav');
+  let nh='<h4>Overview</h4><a href="#introduction">Introduction</a><a href="#authentication">Authentication</a><a href="#conventions">Conventions</a><h4>Endpoints</h4>';
+  let ch='';
+  TAGS.forEach(([t,d])=>{
+    const ops=OPS.filter(o=>o.tag===t);
+    if(!ops.length)return;
+    nh+='<a href="#'+tagId(t)+'" data-tag="'+t+'">'+t+'<span>'+ops.length+'</span></a>';
+    ch+='<section class="sec" id="'+tagId(t)+'" data-tag="'+t+'"><h2>'+t+'</h2><p>'+esc(d)+'</p><div class="ops">'+ops.map(opHtml).join('')+'</div></section>';
+  });
+  nh+='<h4>Reference</h4><a href="#schemas">Schemas<span>'+Object.keys(SCHEMAS).length+'</span></a>';
+  nav.innerHTML=nh; $('#content').innerHTML=ch;
+  $('#schema-list').innerHTML=Object.entries(SCHEMAS).map(([n,[d,fs]])=>
+    '<div class="schema" id="schema-'+n+'"><h3>'+n+'</h3>'+(d?'<p>'+fmt(d)+'</p>':'')+'<div class="scroll"><table class="tbl"><tr><th>Field</th><th>Type</th><th>Description</th></tr>'+
+    fs.map(x=>'<tr><td class="n">'+x[0]+'</td><td class="t">'+typeHtml(x[1])+'</td><td>'+fmt(x[2])+'</td></tr>').join('')+'</table></div></div>').join('');
+  refreshCurl();
+}
+function refreshCurl(){
+  document.querySelectorAll('pre[data-op]').forEach(pre=>{
+    const o=OPS.find(x=>x.id===pre.dataset.op);
+    pre.innerHTML='<button class="cp" type="button">Copy</button><code style="background:none;padding:0;font-size:inherit"></code>';
+    pre.querySelector('code').textContent=curl(o);
+  });
+}
+
+/* ---------- interaction ---------- */
+const sel=$('#server');
+SERVERS.forEach(([n,u])=>{const o=document.createElement('option');o.value=u;o.textContent=n;sel.appendChild(o);});
+sel.addEventListener('change',()=>{$('#custom').hidden=sel.value!=='custom';refreshCurl();});
+$('#custom').addEventListener('input',refreshCurl);
+$('#auth').addEventListener('change',refreshCurl);
+$('#expand').onclick=()=>document.querySelectorAll('details.op').forEach(d=>{if(!d.hidden)d.open=true});
+$('#collapse').onclick=()=>document.querySelectorAll('details.op').forEach(d=>d.open=false);
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.cp');
+  if(b){const t=b.parentElement.querySelector('code').textContent;
+    (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1400)}).catch(()=>{b.textContent='Select and copy';setTimeout(()=>b.textContent='Copy',1800)});}
+  const a=e.target.closest('a[href^="#"]');
+  if(a){document.body.classList.remove('nav-open');openHash(a.getAttribute('href').slice(1));}
+});
+function openHash(h){const el=h&&document.getElementById(h);if(el&&el.tagName==='DETAILS')el.open=true;}
+window.addEventListener('hashchange',()=>openHash(location.hash.slice(1)));
+$('#menu').onclick=()=>document.body.classList.toggle('nav-open');
+$('#q').addEventListener('input',e=>{
+  const v=e.target.value.trim().toLowerCase();
+  let any=false;
+  document.querySelectorAll('#content section').forEach(sec=>{
+    let n=0;
+    sec.querySelectorAll('details.op').forEach(d=>{const m=!v||d.dataset.s.includes(v);d.hidden=!m;if(m)n++;});
+    sec.hidden=!n; if(n)any=true;
+    const link=document.querySelector('#nav a[data-tag="'+sec.dataset.tag+'"]'); if(link)link.hidden=!n;
+  });
+  $('#empty').style.display=any?'none':'block';
+});
+/* highlight current section in nav */
+const io=new IntersectionObserver(es=>{es.forEach(en=>{if(en.isIntersecting){document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+en.target.id));}})},{rootMargin:'-10% 0px -80% 0px'});
+build();
+document.querySelectorAll('main section[id]').forEach(s=>io.observe(s));
+if(location.hash)setTimeout(()=>{openHash(location.hash.slice(1));const el=document.getElementById(location.hash.slice(1));if(el)el.scrollIntoView();},50);
+</script>
+</body>
+</html>
